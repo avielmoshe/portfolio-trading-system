@@ -1,0 +1,5 @@
+-r requirements.txt
+
+# Test-only dependencies, kept out of requirements.txt so a production image never ships them.
+pytest==9.1.1
+httpx==0.28.1

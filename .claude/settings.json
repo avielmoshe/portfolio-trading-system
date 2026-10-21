@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(**/.env)",
+      "Read(**/venv/**)",
+      "Read(**/.venv/**)",
+      "Read(**/__pycache__/**)",
+      "Read(**/*.pyc)",
+      "Read(**/.pytest_cache/**)",
+      "Read(**/.mypy_cache/**)",
+      "Read(**/.ruff_cache/**)",
+      "Read(**/*.log)",
+      "Read(**/logs/**)",
+      "Read(**/pgdata/**)",
+      "Read(./data/**)"
+    ]
+  }
+}

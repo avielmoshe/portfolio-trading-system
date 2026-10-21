@@ -1,16 +1,55 @@
-version: '3.8'
-
 services:
   api:
-    build: 
+    build:
       context: ./backend
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file: .env
     environment:
       - DATABASE_URL=postgresql://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}
+      - REDIS_URL=redis://redis:6379/0
+
+    volumes:
+      - ./backend:/app
+
+  # MOCK market-data source: random-walks every active asset's price into Redis once a second.
+  # Replace with the real Kafka consumer when the market-data pipeline exists.
+  price-feeder:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: ["python", "-m", "app.workers.price_feeder"]
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - ./backend:/app
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    # Redis here is a cache, never the source of truth (Postgres is), so persistence is off:
+    # a restart simply starts empty and the feeder repopulates it within a second.
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+    # No published port on purpose: only containers on the compose network can reach it.
+    # Inspect with: docker compose exec redis redis-cli
 
   db:
     image: postgres:15
@@ -22,6 +61,11 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
 
 volumes:
   postgres_data:

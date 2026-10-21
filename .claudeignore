@@ -1,0 +1,34 @@
+# Python virtual environments
+.venv/
+venv/
+env/
+backend/venv/
+
+# Caches and compiled files
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local, system and environment files
+.env
+.env.*
+.DS_Store
+.idea/
+.vscode/
+
+# Logs and dumps
+*.log
+logs/
+*.dump
+*.sql.gz
+
+# Local Docker data / volumes
+data/
+pgdata/
+
+# Other agent and tool history
+.aider*
+.continue/
